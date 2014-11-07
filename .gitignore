@@ -57,3 +57,11 @@ $RECYCLE.BIN/
 *.msi
 *.msm
 *.msp
+
+# Pokemon-Decs
+output/
+names.txt
+target/
+.idea/
+nbactions.xml
+Pokemon-Decs.iml

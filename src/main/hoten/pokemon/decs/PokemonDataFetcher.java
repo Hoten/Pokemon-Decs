@@ -22,9 +22,8 @@ public class PokemonDataFetcher {
     public static void main(String[] args) throws InterruptedException {
         PokemonDataFetcher fetcher = new PokemonDataFetcher();
         List<Pokemon> pokemon = fetcher.fetchPokemonUpTo(649);
-        Map<String, Pokemon> mapped = pokemon.stream()
-                .collect(Collectors.toMap(p -> p.name, Function.identity()));
-        String json = new Gson().toJson(mapped);
+        pokemon.sort((p1, p2) -> Integer.compare(p1.national_id, p2.national_id));
+        String json = new Gson().toJson(pokemon);
         System.out.println(json);
     }
 

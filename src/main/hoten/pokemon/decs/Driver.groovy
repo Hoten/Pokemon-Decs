@@ -28,39 +28,33 @@ public class Driver {
     static void main(String[] args) {
         background = ImageIO.read(new File("images/background.jpg"))
         pokemonSpriteSheet = new SpriteSheet("images/pokemon.png", 31)
-        Map<String, Pokemon> pokemon = loadPokemonFromJson()
+        def pokemon = loadPokemonFromJson()
         generateForResidents(pokemon)
     }
 
-    static void generateForResidents(Map<String, Pokemon> pokemon) {
-        List pokemonToWorkWith = getFirstEvolutionOfPokemonWithThreeStages(pokemon)
-        //Map<String, Pokemon> base3PokemonSecondStage = evolve(pokemon, base3Pokemon);
-        //Map<String, Pokemon> base3PokemonThirdStage = evolve(pokemon, base3PokemonSecondStage);
-
-        pokemonToWorkWith.remove pokemonToWorkWith.find { it.name == 'Aron' }
-
+    static void generateForResidents(List<Pokemon> pokemon) {
         def names = new File("names.txt").readLines()
 
-        Map<String, Pokemon> pokemonAssignments = [:]
-
-        def assignName = { n, p = null ->
-            if (!p) {
-                p = pokemonToWorkWith[Math.random() * pokemonToWorkWith.size() as int]
-                pokemonToWorkWith.remove p
-            }
-            pokemonAssignments.put(n, p)
-        }
+        def pokemonToWorkWith = getFirstEvolutionOfPokemonWithThreeStages(pokemon)
+        //Map<String, Pokemon> base3PokemonSecondStage = evolve(pokemon, base3Pokemon);
+        //Map<String, Pokemon> base3PokemonThirdStage = evolve(pokemon, base3PokemonSecondStage);
 
         Collections.shuffle(names)
         Collections.shuffle(pokemonToWorkWith)
 
-        names.each assignName
+        Map<String, Pokemon> pokemonAssignments = [:]
+
+        def random = new Random()
+        names.each { n ->
+            def p = pokemonToWorkWith[random.nextInt(pokemonToWorkWith.size())]
+            pokemonToWorkWith.remove p
+            pokemonAssignments.put(n, p)
+        }
 
         pokemonAssignments.each { name, p ->
-            BufferedImage doorDec = createDoorDec(name, p)
-            String fileName = String.format("output/%s.png", name)
-            ImageIO.write(doorDec, "png", new File(fileName))
-        };
+            def doorDec = createDoorDec(name, p)
+            ImageIO.write(doorDec, "png", new File("output/${name}.png"))
+        }
 
         String json = gson.toJson(pokemonAssignments)
         new PrintWriter("output/assignments.json").with {
@@ -75,7 +69,7 @@ public class Driver {
                     .getResult()
         }.collect(Collectors.toList())
 
-        ImageBuilder builder = new ImageBuilder(background);
+        ImageBuilder builder = new ImageBuilder(background)
 
         BufferedImage first = pokemonSprites.get(0)
         int centerX = background.getWidth() / 2 - first.getWidth() / 2
@@ -90,9 +84,9 @@ public class Driver {
         }
 
         builder
-            .drawTextCentered(header, 100)
-            .drawTextCentered(footer, background.getHeight() - 50)
-            .getResult()
+                .drawTextCentered(header, 100)
+                .drawTextCentered(footer, background.getHeight() - 50)
+                .getResult()
     }
 
     static def createDoorDec(String name, Pokemon pokemon) {
@@ -106,37 +100,35 @@ public class Driver {
                 .getResult()
     }
 
-    static Map<String, Pokemon> loadPokemonFromJson() {
+    static List<Pokemon> loadPokemonFromJson() {
         String json = loadJson("pokemon.json")
-        Type listType = new TypeToken<HashMap<String, Pokemon>>() {
+        Type listType = new TypeToken<List<Pokemon>>() {
         }.getType()
         gson.fromJson(json, listType)
     }
 
-    static Map<String, Pokemon> evolve(def allPokemon, def toEvolve) {
-        toEvolve.collect { k, v ->
-            allPokemon.get(v.getFirstNonMegaEvolution().to).with {
-                [it.name, it]
-            }
+    static List<Pokemon> evolve(List<Pokemon> allPokemon, List<Pokemon> toEvolve) {
+        toEvolve.collect { p ->
+            allPokemon.find { it.name == p.getFirstNonMegaEvolution().to }
         }
     }
 
-    static boolean isFirstOfThreeStages(Map<String, Pokemon> allThePokemon, Pokemon p) {
+    static boolean isFirstOfThreeStages(List<Pokemon> allThePokemon, Pokemon p) {
         def secondStageEvolution = p.getFirstNonMegaEvolution()
         if (secondStageEvolution == null) {
             return false
         }
-        if (!allThePokemon.containsKey(secondStageEvolution.to)) {
+        def secondStage = allThePokemon.find { it.name == secondStageEvolution.to }
+        if (!secondStage) {
             return false
         }
-        def secondStage = allThePokemon.get(secondStageEvolution.to)
         secondStage.getFirstNonMegaEvolution() != null
     }
 
-    static def getFirstEvolutionOfPokemonWithThreeStages(Map<String, Pokemon> pokemon) {
-        pokemon.findAll { k, v ->
-            isFirstOfThreeStages(pokemon, v)
-        }.values() as List
+    static List<Pokemon> getFirstEvolutionOfPokemonWithThreeStages(List<Pokemon> pokemon) {
+        pokemon.findAll { p ->
+            isFirstOfThreeStages(pokemon, p)
+        }
     }
 
     static String loadJson(def fileName) {

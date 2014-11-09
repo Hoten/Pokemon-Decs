@@ -21,18 +21,18 @@ import org.apache.commons.io.IOUtils;
 
 public class Driver {
 
-    static Gson gson = new Gson();
-    static BufferedImage background;
-    static SpriteSheet pokemonSpriteSheet;
+    static Gson gson = new Gson()
+    static BufferedImage background
+    static SpriteSheet pokemonSpriteSheet
 
-    static void main(String[] args) throws IOException, InterruptedException {
-        background = ImageIO.read(new File("images/background.jpg"));
-        pokemonSpriteSheet = new SpriteSheet("images/pokemon.png", 31);
-        Map<String, Pokemon> pokemon = loadPokemonFromJson();
-        generateForResidents(pokemon);
+    static void main(String[] args) {
+        background = ImageIO.read(new File("images/background.jpg"))
+        pokemonSpriteSheet = new SpriteSheet("images/pokemon.png", 31)
+        Map<String, Pokemon> pokemon = loadPokemonFromJson()
+        generateForResidents(pokemon)
     }
 
-    static void generateForResidents(Map<String, Pokemon> pokemon) throws IOException {
+    static void generateForResidents(Map<String, Pokemon> pokemon) {
         List pokemonToWorkWith = getFirstEvolutionOfPokemonWithThreeStages(pokemon)
         //Map<String, Pokemon> base3PokemonSecondStage = evolve(pokemon, base3Pokemon);
         //Map<String, Pokemon> base3PokemonThirdStage = evolve(pokemon, base3PokemonSecondStage);
@@ -43,13 +43,6 @@ public class Driver {
 
         Map<String, Pokemon> pokemonAssignments = [:]
 
-        def forcedAssigments = [Sarah : 'Eevee', Aaron : 'Aron']
-
-        forcedAssigments.each { k, v ->
-            pokemonAssignments[k] = pokemon.values().find { it.name == v }
-        }
-
-        def first = ["Bulbasaur", "Charmander", "Squirtle", "Pidgey", "Pichu"]
         def assignName = { n, p = null ->
             if (!p) {
                 p = pokemonToWorkWith[Math.random() * pokemonToWorkWith.size() as int]
@@ -58,14 +51,8 @@ public class Driver {
             pokemonAssignments.put(n, p)
         }
 
-        names.removeAll forcedAssigments.keySet()
-
         Collections.shuffle(names)
         Collections.shuffle(pokemonToWorkWith)
-
-        first.each {
-            assignName names.remove(0), pokemonToWorkWith.find { pkm -> pkm.name == it }
-        }
 
         names.each assignName
 
@@ -81,34 +68,34 @@ public class Driver {
         }
     }
 
-    public static BufferedImage createDoorDec(String header, String footer, List<Pokemon> pokemon) {
+    static def createDoorDec(String header, String footer, List<Pokemon> pokemon) {
         List<BufferedImage> pokemonSprites = pokemon.stream().map { p ->
             new ImageBuilder(pokemonSpriteSheet.getSprite(p.national_id - 1))
                     .resize(3.5)
                     .getResult()
-        }.collect(Collectors.toList());
+        }.collect(Collectors.toList())
 
         ImageBuilder builder = new ImageBuilder(background);
 
-        BufferedImage first = pokemonSprites.get(0);
-        int centerX = background.getWidth() / 2 - first.getWidth() / 2;
-        int centerY = background.getHeight() / 2 - first.getHeight() / 2;
-        int radius = first.getWidth();
+        BufferedImage first = pokemonSprites.get(0)
+        int centerX = background.getWidth() / 2 - first.getWidth() / 2
+        int centerY = background.getHeight() / 2 - first.getHeight() / 2
+        int radius = first.getWidth()
         for (int i = 0; i < pokemonSprites.size(); i++) {
-            BufferedImage sprite = pokemonSprites.get(i);
-            double theta = Math.PI * 2 * i / pokemonSprites.size();
-            int x = (int) (Math.cos(theta) * radius) + centerX;
-            int y = (int) (Math.sin(theta) * radius) + centerY;
-            builder.drawAt(sprite, x, y);
+            BufferedImage sprite = pokemonSprites.get(i)
+            double theta = Math.PI * 2 * i / pokemonSprites.size()
+            int x = (int) (Math.cos(theta) * radius) + centerX
+            int y = (int) (Math.sin(theta) * radius) + centerY
+            builder.drawAt(sprite, x, y)
         }
 
         builder
             .drawTextCentered(header, 100)
             .drawTextCentered(footer, background.getHeight() - 50)
-            .getResult();
+            .getResult()
     }
 
-    public static BufferedImage createDoorDec(String name, Pokemon pokemon) {
+    static def createDoorDec(String name, Pokemon pokemon) {
         def pokemonSprite = new ImageBuilder(pokemonSpriteSheet.getSprite(pokemon.national_id - 1))
                 .resize(8)
                 .getResult()
@@ -119,11 +106,11 @@ public class Driver {
                 .getResult()
     }
 
-    public static Map<String, Pokemon> loadPokemonFromJson() throws IOException {
-        String json = loadJson("pokemon.json");
+    static Map<String, Pokemon> loadPokemonFromJson() {
+        String json = loadJson("pokemon.json")
         Type listType = new TypeToken<HashMap<String, Pokemon>>() {
-        }.getType();
-        gson.fromJson(json, listType);
+        }.getType()
+        gson.fromJson(json, listType)
     }
 
     static Map<String, Pokemon> evolve(def allPokemon, def toEvolve) {
@@ -135,15 +122,15 @@ public class Driver {
     }
 
     static boolean isFirstOfThreeStages(Map<String, Pokemon> allThePokemon, Pokemon p) {
-        def secondStageEvolution = p.getFirstNonMegaEvolution();
+        def secondStageEvolution = p.getFirstNonMegaEvolution()
         if (secondStageEvolution == null) {
-            return false;
+            return false
         }
         if (!allThePokemon.containsKey(secondStageEvolution.to)) {
-            return false;
+            return false
         }
-        def secondStage = allThePokemon.get(secondStageEvolution.to);
-        secondStage.getFirstNonMegaEvolution() != null;
+        def secondStage = allThePokemon.get(secondStageEvolution.to)
+        secondStage.getFirstNonMegaEvolution() != null
     }
 
     static def getFirstEvolutionOfPokemonWithThreeStages(Map<String, Pokemon> pokemon) {
@@ -152,7 +139,7 @@ public class Driver {
         }.values() as List
     }
 
-    static String loadJson(def fileName) throws IOException {
-        FileUtils.readFileToString(new File(fileName));
+    static String loadJson(def fileName) {
+        FileUtils.readFileToString(new File(fileName))
     }
 }

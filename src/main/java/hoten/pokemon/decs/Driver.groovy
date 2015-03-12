@@ -29,7 +29,8 @@ public class Driver {
         background = ImageIO.read(new File("images/background.jpg"))
         pokemonSpriteSheet = new SpriteSheet("images/pokemon.png", 31)
         def pokemon = loadPokemonFromJson()
-        generateForResidents(pokemon)
+        def doorDec = createDoorDec("Shannon", pokemon.find { it.name == "Pikachu" } )
+        ImageIO.write(doorDec, "png", new File("shannon.png"))
     }
 
     static void generateForResidents(List<Pokemon> pokemon) {
